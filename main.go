@@ -120,7 +120,7 @@ func main() {
 	r.POST("/priceservices", controllers.FindPriceOfServices)
 	r.POST("/addprice", controllers.AddPrice)
 	r.POST("/addtodolist", controllers.AddTodoList)
-	r.POST("/paginationrequirement", controllers.CountPaginationRequirement)
+	r.GET("/paginationrequirement", controllers.CountPaginationRequirement)
 	r.POST("/paginationtodolist", controllers.CountPaginationToDoList)
 	r.POST("/update_todolist", controllers.UpdateTodoList)
 	r.POST("/deleteservices", controllers.DeleteServicesProvider)

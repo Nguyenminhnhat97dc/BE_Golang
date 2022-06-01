@@ -21,8 +21,8 @@ import (
 var DB *gorm.DB
 
 func main() {
-	//dsn := "root:@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
-	dsn := "sql6496052:JVUfiJ9mBJ@tcp(sql6.freemysqlhosting.net:3306)/sql6496052?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
+	//dsn := "sql6496052:JVUfiJ9mBJ@tcp(sql6.freemysqlhosting.net:3306)/sql6496052?charset=utf8mb4&parseTime=True&loc=Local"
 	fmt.Println(dsn)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {

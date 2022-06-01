@@ -23,9 +23,9 @@ var password = "3cc9ee2fd230e1696ee764c83ef829474e27577be64388c849031eb618a637ab
 var dbname = "d2u77vk80vvs75"
 var dsn = "host=" + host + "user=" + user + "password=" + password + "dbname=" + dbname + "port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 */
-//var dsn = "root:@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
+var dsn = "root:@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
 
-var dsn = "sql6496052:JVUfiJ9mBJ@tcp(sql6.freemysqlhosting.net:3306)/sql6496052?charset=utf8mb4&parseTime=True&loc=Local"
+//var dsn = "sql6496052:JVUfiJ9mBJ@tcp(sql6.freemysqlhosting.net:3306)/sql6496052?charset=utf8mb4&parseTime=True&loc=Local"
 var upGrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -801,6 +801,18 @@ func CountPaginationRequirement(c *gin.Context) {
 	} else {
 		fmt.Println("connect Successfull.")
 	} */
+	dbConnect, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database.")
+	} else {
+		fmt.Println("connect Successfull.")
+	}
+	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println("error get connection")
+		log.Fatal(err)
+	}
+	defer ws.Close()
 	type Count struct {
 		Count uint
 	}
@@ -809,24 +821,32 @@ func CountPaginationRequirement(c *gin.Context) {
 	}
 	var count Count
 	var checkStatus CheckStatus
-	buf := new(bytes.Buffer)
+	/* buf := new(bytes.Buffer)
 	buf.ReadFrom(c.Request.Body)
 	newString := buf.String()
-	json.Unmarshal([]byte(newString), &checkStatus)
-	if err := connectdatabase.DBConn().Raw("SELECT COUNT(requirements_customers.id) AS "+"Count"+" FROM `requirements_customers` WHERE requirements_customers.status = ?", checkStatus.Status).Scan(&count).Error; err != nil {
-		c.JSON(http.StatusOK, gin.H{"result": "False"})
-		sqlDB, err := connectdatabase.DBConn().DB()
-		if err != nil {
-			log.Fatalln(err)
+	json.Unmarshal([]byte(newString), &checkStatus) */
+	err = ws.ReadJSON(&checkStatus)
+
+	if err != nil {
+		log.Println("error read json")
+		log.Fatal(err)
+	}
+	for {
+
+		if err := dbConnect.Raw("SELECT COUNT(requirements_customers.id) AS "+"Count"+" FROM `requirements_customers` WHERE requirements_customers.status = ?", checkStatus.Status).Scan(&count).Error; err != nil {
+			err = ws.WriteJSON("False")
+			if err != nil {
+				log.Println("error write json: " + err.Error())
+			}
+
+		} else {
+			err = ws.WriteJSON(count)
+			if err != nil {
+				log.Println("error write json: " + err.Error())
+			}
 		}
-		defer sqlDB.Close()
-	} else {
-		c.JSON(http.StatusOK, gin.H{"result": count})
-		sqlDB, err := connectdatabase.DBConn().DB()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		defer sqlDB.Close()
+
+		time.Sleep(1 * time.Second)
 	}
 }
 func CountPaginationToDoList(c *gin.Context) {
